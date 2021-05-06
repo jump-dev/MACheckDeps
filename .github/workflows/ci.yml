@@ -1,0 +1,37 @@
+name: CI
+on:
+  workflow_dispatch: # allows to trigger it manually
+    branches:
+      - master
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  test:
+    name: ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE: ${{ matrix.package }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: 'JuMP'
+          - package: 'SumOfSquares'
+          - package: 'PolyJuMP'
+          - package: 'MathOptInterface'
+          - package: 'MultivariatePolynomials'
+          - package: 'DynamicPolynomials'
+          - package: 'TypedPolynomials'
+          - package: 'Polyhedra'
+          - package: 'Polynomials'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+      - name: Test
+        run: julia -e 'const PACKAGE = ENV["PACKAGE"]; using Pkg; Pkg.develop("MutableArithmetics"); Pkg.develop(PACKAGE); Pkg.test(PACKAGE)'
